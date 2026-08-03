@@ -1,16 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserRole, SkillItem, AchievementItem, CredentialRecord, JobOpportunity, CandidateApplication, AuditLog } from '@/types';
+import { UserRole, User, SkillItem, AchievementItem, CredentialRecord, JobOpportunity, CandidateApplication, AuditLog } from '@/types';
 import { 
   INITIAL_SKILLS, 
   INITIAL_ACHIEVEMENTS, 
   INITIAL_CREDENTIALS, 
   INITIAL_JOBS, 
   INITIAL_APPLICATIONS, 
-  INITIAL_AUDIT_LOGS 
+  INITIAL_AUDIT_LOGS,
+  UNIVERSITIES 
 } from '@/lib/mockData';
 import { BlockchainService } from '@/lib/blockchainService';
+
+// Auth Component
+import { AuthPortal } from '@/components/auth/AuthPortal';
 
 // Layout Components
 import { Navbar } from '@/components/layout/Navbar';
@@ -45,7 +49,10 @@ import { TenantManager } from '@/components/admin/TenantManager';
 import { SystemHealth } from '@/components/admin/SystemHealth';
 
 export default function Home() {
-  // Global State
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Global Workspace State
   const [currentRole, setCurrentRole] = useState<UserRole>('student');
   const [selectedUniversity, setSelectedUniversity] = useState('uni_dsatm_01');
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -58,9 +65,28 @@ export default function Home() {
   const [applications, setApplications] = useState<CandidateApplication[]>(INITIAL_APPLICATIONS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
 
-  // Handle Role Switching and reset tab appropriately
+  // Authentication Success Handler
+  const handleAuthenticated = (user: User) => {
+    setCurrentUser(user);
+    setCurrentRole(user.role);
+    setSelectedUniversity(user.universityId);
+    
+    const defaultTabs: Record<UserRole, string> = {
+      student: 'dashboard',
+      faculty: 'verification-queue',
+      placement: 'drive-manager',
+      recruiter: 'candidate-matcher',
+      super_admin: 'tenant-manager'
+    };
+    setActiveTab(defaultTabs[user.role]);
+  };
+
+  // Role Switcher Handler
   const handleRoleChange = (role: UserRole) => {
     setCurrentRole(role);
+    if (currentUser) {
+      setCurrentUser({ ...currentUser, role });
+    }
     const defaultTabs: Record<UserRole, string> = {
       student: 'dashboard',
       faculty: 'verification-queue',
@@ -71,14 +97,18 @@ export default function Home() {
     setActiveTab(defaultTabs[role]);
   };
 
+  // Logout Handler
+  const handleLogout = () => {
+    setCurrentUser(null);
+  };
+
   // State Handler: Add new project / achievement
   const handleAddAchievement = (newAch: AchievementItem) => {
     setAchievements([newAch, ...achievements]);
-    // Add audit log
     const newLog: AuditLog = {
       id: `log_${Date.now()}`,
-      actorName: 'Alex Rivera',
-      actorRole: 'student',
+      actorName: currentUser?.name || 'Alex Rivera',
+      actorRole: currentRole,
       action: 'SUBMIT_ACHIEVEMENT_FOR_VERIFICATION',
       target: `${newAch.title} (${newAch.type})`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
@@ -92,16 +122,14 @@ export default function Home() {
     const ach = achievements.find(a => a.id === id);
     if (!ach) return;
 
-    // Issue Polygon Credential
-    const newCred = await BlockchainService.issueCredentialOnPolygon(ach, 'Dr. Sarah Jenkins (HOD)');
+    const newCred = await BlockchainService.issueCredentialOnPolygon(ach, currentUser?.name || 'Dr. Sarah Jenkins (HOD)');
 
-    // Update achievement status
     setAchievements(achievements.map(a => {
       if (a.id === id) {
         return {
           ...a,
           verificationStatus: 'verified',
-          verifiedBy: 'Dr. Sarah Jenkins (HOD CSE)',
+          verifiedBy: currentUser?.name || 'Dr. Sarah Jenkins (HOD CSE)',
           verifiedAt: new Date().toISOString().split('T')[0],
           ipfsHash: newCred.ipfsHash,
           txHash: newCred.txHash,
@@ -113,10 +141,9 @@ export default function Home() {
 
     setCredentials([newCred, ...credentials]);
 
-    // Add Audit Log
     const newLog: AuditLog = {
       id: `log_${Date.now()}`,
-      actorName: 'Dr. Sarah Jenkins',
+      actorName: currentUser?.name || 'Dr. Sarah Jenkins',
       actorRole: 'faculty',
       action: 'VERIFY_AND_ISSUE_CREDENTIAL',
       target: `${ach.title} (Student: ${ach.studentName})`,
@@ -127,12 +154,10 @@ export default function Home() {
     setAuditLogs([newLog, ...auditLogs]);
   };
 
-  // State Handler: Faculty rejects achievement
   const handleRejectAchievement = (id: string) => {
     setAchievements(achievements.map(a => a.id === id ? { ...a, verificationStatus: 'rejected' } : a));
   };
 
-  // State Handler: Add new job placement drive
   const handleAddJob = (newJob: JobOpportunity) => {
     setJobs([newJob, ...jobs]);
   };
@@ -192,15 +217,22 @@ export default function Home() {
     }
   };
 
+  // If user is not authenticated, display Role-Based Authentication & OTP 2FA Portal
+  if (!currentUser) {
+    return <AuthPortal onAuthenticated={handleAuthenticated} />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#090d16] text-slate-100 font-sans">
       
       {/* Top Navbar */}
       <Navbar
+        currentUser={currentUser}
         currentRole={currentRole}
         onRoleChange={handleRoleChange}
         selectedUniversity={selectedUniversity}
         onUniversityChange={setSelectedUniversity}
+        onLogout={handleLogout}
       />
 
       {/* Main Workspace Layout */}

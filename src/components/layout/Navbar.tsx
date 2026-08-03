@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserRole } from '@/types';
+import { UserRole, User } from '@/types';
 import { UNIVERSITIES } from '@/lib/mockData';
 import { 
   ShieldCheck, 
@@ -16,22 +16,27 @@ import {
   GraduationCap,
   Briefcase,
   Layers,
+  LogOut,
   UserSquare2
 } from 'lucide-react';
 
 interface NavbarProps {
+  currentUser: User | null;
   currentRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   selectedUniversity: string;
   onUniversityChange: (uniId: string) => void;
+  onLogout: () => void;
   unreadCount?: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
+  currentUser,
   currentRole,
   onRoleChange,
   selectedUniversity,
   onUniversityChange,
+  onLogout,
   unreadCount = 3
 }) => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -120,7 +125,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-3">
           
           {/* Polygon Wallet Badge */}
-          <div className="hidden sm:flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-950/40 px-3 py-1 text-xs font-medium text-purple-300">
+          <div className="hidden lg:flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-950/40 px-3 py-1 text-xs font-medium text-purple-300">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             <Wallet className="h-3.5 w-3.5 text-purple-400" />
             <span>Polygon PoS</span>
@@ -144,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 to-purple-950/60 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md hover:border-indigo-500/50 transition"
             >
               <span className={currentRoleInfo.color}>{currentRoleInfo.icon}</span>
-              <span>{currentRoleInfo.label}</span>
+              <span className="hidden sm:inline">{currentRoleInfo.label}</span>
               <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
             </button>
 
@@ -177,9 +182,34 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </button>
                   ))}
                 </div>
+
+                <div className="border-t border-slate-800/80 mt-2 pt-1">
+                  <button
+                    onClick={() => {
+                      setShowRoleMenu(false);
+                      onLogout();
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-950/30 transition"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out to Auth Portal</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
+
+          {/* User Profile Pill & Sign Out Button */}
+          {currentUser && (
+            <button
+              onClick={onLogout}
+              title="Sign Out to Auth Portal"
+              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-slate-800 transition"
+            >
+              <img src={currentUser.avatar} alt={currentUser.name} className="h-5 w-5 rounded-full object-cover" />
+              <LogOut className="h-3.5 w-3.5 text-slate-400 hover:text-rose-400" />
+            </button>
+          )}
 
         </div>
 
