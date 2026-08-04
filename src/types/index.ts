@@ -5,6 +5,8 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  primaryRole: UserRole;
+  allowedRoles: UserRole[];
   avatar: string;
   universityId: string;
   universityName: string;

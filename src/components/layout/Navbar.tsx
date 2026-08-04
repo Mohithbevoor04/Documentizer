@@ -17,7 +17,8 @@ import {
   Briefcase,
   Layers,
   LogOut,
-  UserSquare2
+  UserSquare2,
+  Lock
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -154,45 +155,73 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {showRoleMenu && (
-              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-800 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-2xl z-50">
-                <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800/80 mb-1">
-                  Switch Active Persona
-                </div>
-                <div className="space-y-1">
-                  {roles.map(r => (
-                    <button
-                      key={r.role}
-                      onClick={() => {
-                        onRoleChange(r.role);
-                        setShowRoleMenu(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs transition ${
-                        r.role === currentRole
-                          ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/30 text-white font-bold border border-indigo-500/40 shadow-inner'
-                          : 'text-slate-300 hover:bg-slate-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className={`p-1.5 rounded-lg bg-slate-900 ${r.color}`}>
-                          {r.icon}
-                        </div>
-                        <span>{r.label}</span>
-                      </div>
-                      {r.role === currentRole && <CheckCircle2 className="h-4 w-4 text-indigo-400" />}
-                    </button>
-                  ))}
+              <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-slate-800 bg-slate-950/95 p-2.5 shadow-2xl backdrop-blur-2xl z-50">
+                <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800/80 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Switch Persona View
+                  </span>
+                  <span className="text-[10px] font-medium text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
+                    {currentUser?.allowedRoles && currentUser.allowedRoles.length > 1 ? `${currentUser.allowedRoles.length} Authorized Views` : 'Single Role Account'}
+                  </span>
                 </div>
 
-                <div className="border-t border-slate-800/80 mt-2 pt-1">
+                <div className="space-y-1">
+                  {roles.map(r => {
+                    const isAllowed = currentUser?.allowedRoles?.includes(r.role) ?? (r.role === currentRole);
+                    const isActive = r.role === currentRole;
+
+                    return (
+                      <button
+                        key={r.role}
+                        disabled={!isAllowed}
+                        onClick={() => {
+                          if (isAllowed) {
+                            onRoleChange(r.role);
+                            setShowRoleMenu(false);
+                          }
+                        }}
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs transition ${
+                          isActive
+                            ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/30 text-white font-bold border border-indigo-500/40 shadow-inner'
+                            : isAllowed
+                              ? 'text-slate-300 hover:bg-slate-900 cursor-pointer'
+                              : 'text-slate-500 bg-slate-950/40 cursor-not-allowed opacity-60'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className={`p-1.5 rounded-lg bg-slate-900 ${isAllowed ? r.color : 'text-slate-600'}`}>
+                            {r.icon}
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium">{r.label}</div>
+                            {!isAllowed && (
+                              <div className="text-[9px] text-slate-500">Requires {r.label} Authorization</div>
+                            )}
+                          </div>
+                        </div>
+                        {isActive ? (
+                          <CheckCircle2 className="h-4 w-4 text-indigo-400" />
+                        ) : !isAllowed ? (
+                          <Lock className="h-3.5 w-3.5 text-slate-600" />
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="border-t border-slate-800/80 mt-2.5 pt-2 space-y-1">
+                  <div className="px-2 py-1 text-[10px] text-slate-500 leading-tight">
+                    Need access to another role? Sign out to authenticate as a different user identity.
+                  </div>
                   <button
                     onClick={() => {
                       setShowRoleMenu(false);
                       onLogout();
                     }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-950/30 transition"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold bg-rose-500/10 text-rose-400 hover:bg-rose-950/40 border border-rose-500/20 transition"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span>Sign Out to Auth Portal</span>
+                    <span>Switch Account / Sign Out</span>
                   </button>
                 </div>
               </div>

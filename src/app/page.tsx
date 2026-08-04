@@ -81,12 +81,19 @@ export default function Home() {
     setActiveTab(defaultTabs[user.role]);
   };
 
-  // Role Switcher Handler
-  const handleRoleChange = (role: UserRole) => {
-    setCurrentRole(role);
-    if (currentUser) {
-      setCurrentUser({ ...currentUser, role });
+  // Role Switcher Handler with RBAC Guard & Audit Log
+  const handleRoleChange = (targetRole: UserRole) => {
+    if (!currentUser) return;
+
+    const allowed = currentUser.allowedRoles?.includes(targetRole) ?? (targetRole === currentUser.role);
+    if (!allowed) {
+      console.warn(`[RBAC] Access denied: User ${currentUser.name} (${currentUser.primaryRole}) is not authorized to view ${targetRole}.`);
+      return;
     }
+
+    setCurrentRole(targetRole);
+    setCurrentUser({ ...currentUser, role: targetRole });
+
     const defaultTabs: Record<UserRole, string> = {
       student: 'dashboard',
       faculty: 'verification-queue',
@@ -94,7 +101,19 @@ export default function Home() {
       recruiter: 'candidate-matcher',
       super_admin: 'tenant-manager'
     };
-    setActiveTab(defaultTabs[role]);
+    setActiveTab(defaultTabs[targetRole]);
+
+    // Record Role View Audit Log
+    const newLog: AuditLog = {
+      id: `log_${Date.now()}`,
+      actorName: currentUser.name,
+      actorRole: currentUser.primaryRole,
+      action: 'SWITCH_ACTIVE_ROLE_VIEW',
+      target: `Switched view from ${currentRole} to ${targetRole}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      ip: '192.168.1.104'
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
   };
 
   // Logout Handler

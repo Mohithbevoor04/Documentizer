@@ -5,6 +5,8 @@ export const INITIAL_USER: User = {
   name: 'Alex Rivera',
   email: 'alex.rivera@dsatm.edu',
   role: 'student',
+  primaryRole: 'student',
+  allowedRoles: ['student'],
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
   universityId: 'uni_dsatm_01',
   universityName: 'Dayananda Sagar Academy of Tech & Mgmt',

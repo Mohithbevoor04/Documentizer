@@ -95,11 +95,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
       super_admin: 'admin@talentchain.ai'
     };
 
+    const roleAllowedRolesMap: Record<UserRole, UserRole[]> = {
+      student: ['student'],
+      faculty: ['faculty', 'student'],
+      placement: ['placement', 'student'],
+      recruiter: ['recruiter'],
+      super_admin: ['super_admin', 'faculty', 'placement', 'recruiter', 'student']
+    };
+
     const user: User = {
       id: `usr_${role}_${Date.now()}`,
       name: names[role],
       email: emails[role],
       role,
+      primaryRole: role,
+      allowedRoles: roleAllowedRolesMap[role],
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
       universityId: selectedUni,
       universityName: UNIVERSITIES.find(u => u.id === selectedUni)?.name || 'Dayananda Sagar Academy of Tech & Mgmt'
@@ -109,11 +119,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
   };
 
   const handleOtpSuccess = () => {
+    const roleAllowedRolesMap: Record<UserRole, UserRole[]> = {
+      student: ['student'],
+      faculty: ['faculty', 'student'],
+      placement: ['placement', 'student'],
+      recruiter: ['recruiter'],
+      super_admin: ['super_admin', 'faculty', 'placement', 'recruiter', 'student']
+    };
+
     const user: User = {
       id: `usr_${selectedRole}_${Date.now()}`,
       name: fullName,
       email,
       role: selectedRole,
+      primaryRole: selectedRole,
+      allowedRoles: roleAllowedRolesMap[selectedRole],
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
       universityId: selectedUni,
       universityName: UNIVERSITIES.find(u => u.id === selectedUni)?.name || 'Dayananda Sagar Academy of Tech & Mgmt'
