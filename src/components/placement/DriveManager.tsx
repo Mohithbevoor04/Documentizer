@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { JobOpportunity } from '@/types';
-import { Briefcase, Plus, Users, Calendar, MapPin, ExternalLink, Sparkles } from 'lucide-react';
+import { Briefcase, Plus, Users, Calendar, MapPin, ExternalLink, Sparkles, Search, Filter } from 'lucide-react';
 
 interface DriveManagerProps {
   jobs: JobOpportunity[];
@@ -17,6 +17,10 @@ export const DriveManager: React.FC<DriveManagerProps> = ({ jobs, onAddJob }) =>
   const [type, setType] = useState<'internship' | 'full_time'>('full_time');
   const [skillsRequired, setSkillsRequired] = useState('');
   const [description, setDescription] = useState('');
+
+  // Filters state
+  const [filterType, setFilterType] = useState<'all' | 'full_time' | 'internship'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +53,16 @@ export const DriveManager: React.FC<DriveManagerProps> = ({ jobs, onAddJob }) =>
     setSkillsRequired('');
   };
 
+  const filteredJobs = jobs.filter(job => {
+    if (filterType !== 'all' && job.type !== filterType) return false;
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      const matchText = `${job.title} ${job.companyName} ${job.location} ${job.skillsRequired.join(' ')}`.toLowerCase();
+      return matchText.includes(q);
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-8">
       
@@ -73,9 +87,50 @@ export const DriveManager: React.FC<DriveManagerProps> = ({ jobs, onAddJob }) =>
         </button>
       </div>
 
+      {/* Filter Controls Bar */}
+      <div className="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-cyan-500/20">
+        
+        {/* Opportunity Type Tabs */}
+        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 w-full sm:w-auto">
+          {(['all', 'full_time', 'internship'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setFilterType(t)}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-lg capitalize transition flex-1 sm:flex-none ${
+                filterType === t
+                  ? 'bg-cyan-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {t.replace('_', ' ')} ({t === 'all' ? jobs.length : jobs.filter(j => j.type === t).length})
+            </button>
+          ))}
+        </div>
+
+        {/* Search Input */}
+        <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800 w-full sm:w-72">
+          <Search className="h-4 w-4 text-slate-500 shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search placement drives or skills..."
+            className="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none w-full"
+          />
+        </div>
+
+      </div>
+
       {/* Drives Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {jobs.map(job => (
+      {filteredJobs.length === 0 ? (
+        <div className="glass-panel rounded-2xl p-12 text-center space-y-3">
+          <Filter className="h-10 w-10 text-slate-600 mx-auto" />
+          <h3 className="text-base font-bold text-white">No Placement Drives Match Filter</h3>
+          <p className="text-xs text-slate-400">Try adjusting the filter tabs or clearing your search term.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredJobs.map(job => (
           <div key={job.id} className="glass-panel glass-panel-hover rounded-2xl p-6 space-y-4">
             
             <div className="flex items-start justify-between">
@@ -118,6 +173,7 @@ export const DriveManager: React.FC<DriveManagerProps> = ({ jobs, onAddJob }) =>
           </div>
         ))}
       </div>
+    )}
 
       {/* Create Drive Modal */}
       {showModal && (

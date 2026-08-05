@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AchievementItem } from '@/types';
-import { CheckCircle2, XCircle, ShieldCheck, Cpu, Clock, ExternalLink } from 'lucide-react';
+import { CheckCircle2, XCircle, ShieldCheck, Cpu, Clock, ExternalLink, Search, Filter } from 'lucide-react';
 
 interface VerificationQueueProps {
   achievements: AchievementItem[];
@@ -15,7 +15,20 @@ export const VerificationQueue: React.FC<VerificationQueueProps> = ({
   onVerify,
   onReject
 }) => {
+  const [filterType, setFilterType] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const pending = achievements.filter(a => a.verificationStatus === 'pending');
+
+  const filteredPending = pending.filter(item => {
+    if (filterType !== 'all' && item.type !== filterType) return false;
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      const matchText = `${item.title} ${item.studentName} ${item.studentRoll} ${item.department} ${item.techStack.join(' ')}`.toLowerCase();
+      return matchText.includes(q);
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-8">
@@ -38,16 +51,50 @@ export const VerificationQueue: React.FC<VerificationQueueProps> = ({
         </div>
       </div>
 
+      {/* Filter Controls Bar */}
+      <div className="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-emerald-500/20">
+        
+        {/* Category Tabs */}
+        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 flex-wrap gap-1 w-full sm:w-auto">
+          {['all', 'project', 'research', 'certificate', 'hackathon'].map(t => (
+            <button
+              key={t}
+              onClick={() => setFilterType(t)}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize transition ${
+                filterType === t
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {t} ({t === 'all' ? pending.length : pending.filter(a => a.type === t).length})
+            </button>
+          ))}
+        </div>
+
+        {/* Search Bar */}
+        <div className="flex items-center gap-2 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800 w-full sm:w-72">
+          <Search className="h-4 w-4 text-slate-500 shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search student or project..."
+            className="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none w-full"
+          />
+        </div>
+
+      </div>
+
       {/* Queue List */}
-      {pending.length === 0 ? (
+      {filteredPending.length === 0 ? (
         <div className="glass-panel rounded-2xl p-12 text-center space-y-3">
-          <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto" />
-          <h3 className="text-base font-bold text-white">Verification Queue is Clear!</h3>
-          <p className="text-xs text-slate-400">All submitted student projects & research papers have been verified.</p>
+          <Filter className="h-10 w-10 text-slate-600 mx-auto" />
+          <h3 className="text-base font-bold text-white">No Matching Verification Submissions</h3>
+          <p className="text-xs text-slate-400">All submitted projects matching this filter have been reviewed or non-exist.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {pending.map(item => (
+          {filteredPending.map(item => (
             <div key={item.id} className="glass-panel rounded-2xl p-6 space-y-4 border border-indigo-500/20">
               
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
