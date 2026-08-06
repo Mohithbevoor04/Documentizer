@@ -4,6 +4,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phoneNumber?: string;
   role: UserRole;
   primaryRole: UserRole;
   allowedRoles: UserRole[];

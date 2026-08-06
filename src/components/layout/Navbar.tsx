@@ -231,14 +231,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* User Profile Pill & Sign Out Button */}
           {currentUser && (
-            <button
-              onClick={onLogout}
-              title="Sign Out to Auth Portal"
-              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-slate-800 transition"
-            >
-              <img src={currentUser.avatar} alt={currentUser.name} className="h-5 w-5 rounded-full object-cover" />
-              <LogOut className="h-3.5 w-3.5 text-slate-400 hover:text-rose-400" />
-            </button>
+            <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-300">
+              <img src={currentUser.avatar} alt={currentUser.name} className="h-5 w-5 rounded-full object-cover shrink-0" />
+              <div className="hidden sm:block text-left">
+                <div className="text-xs font-bold text-white leading-tight">{currentUser.name}</div>
+                {currentUser.phoneNumber && (
+                  <div className="text-[10px] text-amber-400 font-mono leading-tight">{currentUser.phoneNumber}</div>
+                )}
+              </div>
+              <button
+                onClick={onLogout}
+                title="Sign Out to Auth Portal"
+                className="p-1 hover:text-rose-400 text-slate-400 transition"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            </div>
           )}
 
         </div>

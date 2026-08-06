@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { UserRole, User } from '@/types';
 import { UNIVERSITIES } from '@/lib/mockData';
 import { OTPVerification } from './OTPVerification';
+import { PhoneAuthService } from '@/lib/phoneAuthService';
+import { UserService } from '@/lib/userService';
 import { 
   GraduationCap, 
   ShieldCheck, 
@@ -17,7 +19,8 @@ import {
   ArrowRight,
   Sparkles,
   KeyRound,
-  CheckCircle2
+  CheckCircle2,
+  Phone
 } from 'lucide-react';
 
 interface AuthPortalProps {
@@ -31,6 +34,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
 
   // Form State
   const [email, setEmail] = useState('alex.rivera@dsatm.edu');
+  const [phoneNumber, setPhoneNumber] = useState('9876543210');
+  const [countryCode, setCountryCode] = useState('+91');
   const [password, setPassword] = useState('••••••••••••');
   const [fullName, setFullName] = useState('Alex Rivera');
   const [extraIdentifier, setExtraIdentifier] = useState('1DT22CS045');
@@ -38,6 +43,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
   // Step 2 OTP State
   const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
   const [generatedOtp, setGeneratedOtp] = useState('849201');
+  const [formattedPhone, setFormattedPhone] = useState('+91 98765 43210');
 
   const roles: { id: UserRole; label: string; icon: React.ReactNode; color: string; desc: string }[] = [
     { id: 'student', label: 'Student', icon: <GraduationCap className="h-5 w-5" />, color: 'text-indigo-400', desc: 'Portfolio, AI Mentor & Verified Credentials' },
@@ -68,15 +74,18 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
     setFullName(defaultNames[role]);
   };
 
-  const handleGenerateOtp = () => {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(code);
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await PhoneAuthService.sendPhoneOTP(phoneNumber, countryCode);
+    setGeneratedOtp(res.otpCode);
+    setFormattedPhone(res.formattedPhone);
+    setStep('otp');
   };
 
-  const handleCredentialsSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleGenerateOtp();
-    setStep('otp');
+  const handleResendOtp = async () => {
+    const res = await PhoneAuthService.sendPhoneOTP(phoneNumber, countryCode);
+    setGeneratedOtp(res.otpCode);
+    setFormattedPhone(res.formattedPhone);
   };
 
   const handleQuickDemoLogin = (role: UserRole) => {
@@ -107,6 +116,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
       id: `usr_${role}_${Date.now()}`,
       name: names[role],
       email: emails[role],
+      phoneNumber: '+91 98765 43210',
       role,
       primaryRole: role,
       allowedRoles: roleAllowedRolesMap[role],
@@ -131,6 +141,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
       id: `usr_${selectedRole}_${Date.now()}`,
       name: fullName,
       email,
+      phoneNumber: formattedPhone,
       role: selectedRole,
       primaryRole: selectedRole,
       allowedRoles: roleAllowedRolesMap[selectedRole],
@@ -139,7 +150,9 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
       universityName: UNIVERSITIES.find(u => u.id === selectedUni)?.name || 'Dayananda Sagar Academy of Tech & Mgmt'
     };
 
-    onAuthenticated(user);
+    // Save user persistently in local database registry
+    const registeredUser = UserService.registerUser(user);
+    onAuthenticated(registeredUser);
   };
 
   if (step === 'otp') {
@@ -147,10 +160,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
       <div className="min-h-screen flex items-center justify-center p-4 bg-[#090d16]">
         <OTPVerification
           email={email}
+          phone={formattedPhone}
           role={selectedRole}
           generatedOtp={generatedOtp}
           onVerifySuccess={handleOtpSuccess}
-          onResendOtp={handleGenerateOtp}
+          onResendOtp={handleResendOtp}
           onBack={() => setStep('credentials')}
         />
       </div>
@@ -268,16 +282,29 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onAuthenticated }) => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      className="w-full rounded-xl border border-slate-800 bg-slate-900 pl-9 pr-3.5 py-2.5 text-white focus:border-indigo-500 focus:outline-none"
-                    />
+                  <label className="block text-slate-300 font-medium mb-1">Mobile Phone (Real SMS 2FA)</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={e => setCountryCode(e.target.value)}
+                      className="rounded-xl border border-slate-800 bg-slate-900 px-2 py-2.5 text-white focus:border-indigo-500 focus:outline-none text-xs font-mono"
+                    >
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+61">🇦🇺 +61</option>
+                    </select>
+                    <div className="relative flex-1">
+                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                      <input
+                        type="tel"
+                        required
+                        placeholder="98765 43210"
+                        value={phoneNumber}
+                        onChange={e => setPhoneNumber(e.target.value)}
+                        className="w-full rounded-xl border border-slate-800 bg-slate-900 pl-9 pr-3.5 py-2.5 text-white font-mono focus:border-indigo-500 focus:outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
