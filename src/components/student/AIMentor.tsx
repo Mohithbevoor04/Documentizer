@@ -69,7 +69,9 @@ export const AIMentor: React.FC = () => {
   const suggestedPrompts = [
     'How do my verified projects match with Polygon Labs?',
     'What skills should I learn to reach a 98 AI Career Score?',
-    'Evaluate my resume for AI Systems Engineer roles.'
+    'Evaluate my resume for AI Systems Engineer roles.',
+    'Recommend top Web3 hackathons for Q3 2026',
+    'How to optimize my vector embeddings for recruiters?'
   ];
 
   return (

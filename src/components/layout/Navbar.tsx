@@ -125,11 +125,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Right Action Bar */}
         <div className="flex items-center gap-3">
           
-          {/* Polygon Wallet Badge */}
+          {/* Polygon Wallet & Network Status Badge */}
           <div className="hidden lg:flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-950/40 px-3 py-1 text-xs font-medium text-purple-300">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             <Wallet className="h-3.5 w-3.5 text-purple-400" />
             <span>Polygon PoS</span>
+            <span className="text-[10px] text-purple-300/80 font-mono bg-purple-900/50 px-1.5 py-0.5 rounded border border-purple-500/20">Block #58.4M</span>
             <span className="text-[10px] opacity-75 font-mono">0x8f2C...9712</span>
           </div>
 
