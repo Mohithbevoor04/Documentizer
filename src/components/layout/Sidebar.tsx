@@ -75,13 +75,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = navByRole[currentRole] || [];
 
   return (
-    <aside className="w-64 shrink-0 border-r border-slate-800/80 bg-slate-950/60 p-4 hidden md:block">
+    <aside className="w-64 shrink-0 border-r border-sky-200/60 bg-white/70 backdrop-blur-xl p-4 hidden md:block">
       <div className="space-y-6">
         
         {/* Role Header Badge */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Scope</span>
-          <div className="mt-0.5 text-xs font-bold text-white capitalize">{currentRole.replace('_', ' ')} Workspace</div>
+        <div className="rounded-xl border border-sky-200 bg-sky-50/90 p-3">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700">Current Scope</span>
+          <div className="mt-0.5 text-xs font-extrabold text-slate-900 capitalize">{currentRole.replace('_', ' ')} Workspace</div>
         </div>
 
         {/* Navigation Items */}
@@ -92,21 +92,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-medium transition ${
+                className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition ${
                   isActive
-                    ? 'bg-indigo-600/20 text-indigo-300 font-semibold border border-indigo-500/30 shadow-md'
-                    : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white font-extrabold shadow-md shadow-sky-600/20'
+                    : 'text-slate-600 hover:bg-sky-50 hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={isActive ? 'text-indigo-400' : 'text-slate-400'}>
+                  <span className={isActive ? 'text-white' : 'text-slate-400'}>
                     {item.icon}
                   </span>
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                    isActive ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-400'
+                    isActive ? 'bg-white/20 text-white' : 'bg-sky-100 text-sky-700'
                   }`}>
                     {item.badge}
                   </span>
@@ -117,12 +117,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Bottom Status Card */}
-        <div className="rounded-xl border border-indigo-500/20 bg-gradient-to-b from-indigo-950/30 to-purple-950/30 p-3 text-xs">
-          <div className="flex items-center justify-between text-indigo-300 font-semibold">
+        <div className="rounded-xl border border-sky-200 bg-gradient-to-b from-sky-50 to-blue-50/80 p-3 text-xs shadow-sm">
+          <div className="flex items-center justify-between text-sky-800 font-bold">
             <span>Polygon Node</span>
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400"></span>
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
           </div>
-          <p className="mt-1 text-[11px] text-slate-400">
+          <p className="mt-1 text-[11px] text-slate-500">
             Block #58492014 synced with IPFS gateway.
           </p>
         </div>

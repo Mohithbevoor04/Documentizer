@@ -242,7 +242,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#090d16] text-slate-100 font-sans">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-sky-50 via-blue-50/60 to-indigo-50/80 text-slate-900 font-sans">
       
       {/* Top Navbar */}
       <Navbar
