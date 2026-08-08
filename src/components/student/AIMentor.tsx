@@ -71,7 +71,7 @@ export const AIMentor: React.FC = () => {
     'What skills should I learn to reach a 98 AI Career Score?',
     'Evaluate my resume for AI Systems Engineer roles.',
     'Recommend top Web3 hackathons for Q3 2026',
-    'How to optimize my vector embeddings for recruiters?'
+    'How to optimize MySQL query performance for large candidate vector search datasets?'
   ];
 
   return (

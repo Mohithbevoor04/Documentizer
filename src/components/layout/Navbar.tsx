@@ -18,7 +18,8 @@ import {
   Layers,
   LogOut,
   UserSquare2,
-  Lock
+  Lock,
+  Database
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -132,6 +133,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Polygon PoS</span>
             <span className="text-[10px] text-purple-300/80 font-mono bg-purple-900/50 px-1.5 py-0.5 rounded border border-purple-500/20">Block #58.4M</span>
             <span className="text-[10px] opacity-75 font-mono">0x8f2C...9712</span>
+          </div>
+
+          {/* MySQL Realtime Sync Status Badge */}
+          <div className="hidden xl:flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-medium text-emerald-300">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <Database className="h-3.5 w-3.5 text-emerald-400" />
+            <span>MySQL Sync</span>
+            <span className="text-[10px] text-emerald-400/90 font-mono bg-emerald-900/50 px-1.5 py-0.5 rounded border border-emerald-500/30">Live (14ms)</span>
           </div>
 
           {/* Notifications */}

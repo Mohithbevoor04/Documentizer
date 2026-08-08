@@ -124,6 +124,14 @@ export default function Home() {
   // State Handler: Add new project / achievement
   const handleAddAchievement = (newAch: AchievementItem) => {
     setAchievements([newAch, ...achievements]);
+
+    // Real-Time MySQL Sync
+    fetch('/api/achievements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newAch)
+    }).catch(err => console.warn('MySQL achievement sync note:', err));
+
     const newLog: AuditLog = {
       id: `log_${Date.now()}`,
       actorName: currentUser?.name || 'Alex Rivera',
@@ -134,6 +142,11 @@ export default function Home() {
       ip: '192.168.1.104'
     };
     setAuditLogs([newLog, ...auditLogs]);
+    fetch('/api/audit-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newLog)
+    }).catch(err => console.warn('MySQL audit log sync note:', err));
   };
 
   // State Handler: Faculty verifies achievement & issues Polygon credential
@@ -160,6 +173,19 @@ export default function Home() {
 
     setCredentials([newCred, ...credentials]);
 
+    // Real-Time MySQL Sync for Achievement & Credential
+    fetch('/api/achievements', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, verificationStatus: 'verified', ipfsHash: newCred.ipfsHash, txHash: newCred.txHash })
+    }).catch(err => console.warn('MySQL verify sync note:', err));
+
+    fetch('/api/credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCred)
+    }).catch(err => console.warn('MySQL credential sync note:', err));
+
     const newLog: AuditLog = {
       id: `log_${Date.now()}`,
       actorName: currentUser?.name || 'Dr. Sarah Jenkins',
@@ -171,14 +197,29 @@ export default function Home() {
       ip: '192.168.1.104'
     };
     setAuditLogs([newLog, ...auditLogs]);
+    fetch('/api/audit-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newLog)
+    }).catch(err => console.warn('MySQL audit log sync note:', err));
   };
 
   const handleRejectAchievement = (id: string) => {
     setAchievements(achievements.map(a => a.id === id ? { ...a, verificationStatus: 'rejected' } : a));
+    fetch('/api/achievements', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, verificationStatus: 'rejected' })
+    }).catch(err => console.warn('MySQL reject sync note:', err));
   };
 
   const handleAddJob = (newJob: JobOpportunity) => {
     setJobs([newJob, ...jobs]);
+    fetch('/api/jobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newJob)
+    }).catch(err => console.warn('MySQL job sync note:', err));
   };
 
   // Render view based on active Tab and Role
