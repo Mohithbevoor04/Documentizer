@@ -222,12 +222,53 @@ export default function Home() {
     }).catch(err => console.warn('MySQL job sync note:', err));
   };
 
+  const handleApplyJob = (job: JobOpportunity) => {
+    const newApp: CandidateApplication = {
+      id: `app_${Date.now()}`,
+      opportunityId: job.id,
+      jobTitle: job.title,
+      companyName: job.companyName,
+      studentId: currentUser?.id || 'usr_student_01',
+      studentName: currentUser?.name || 'Alex Rivera',
+      studentRoll: '1DT22CS045',
+      cgpa: 9.4,
+      talentScore: 95,
+      matchScore: job.matchScore || 96,
+      status: 'applied',
+      appliedAt: new Date().toISOString()
+    };
+
+    setApplications([newApp, ...applications]);
+
+    fetch('/api/applications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newApp)
+    }).catch(err => console.warn('MySQL application sync note:', err));
+
+    const newLog: AuditLog = {
+      id: `log_${Date.now()}`,
+      actorName: currentUser?.name || 'Alex Rivera',
+      actorRole: currentRole,
+      action: 'SUBMIT_CAMPUS_JOB_APPLICATION',
+      target: `${job.title} at ${job.companyName}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      ip: '192.168.1.104'
+    };
+    setAuditLogs([newLog, ...auditLogs]);
+    fetch('/api/audit-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newLog)
+    }).catch(err => console.warn('MySQL audit log sync note:', err));
+  };
+
   // Render view based on active Tab and Role
   const renderContent = () => {
     switch (activeTab) {
       // Student Views
       case 'dashboard':
-        return <StudentDashboard skills={skills} achievements={achievements} credentials={credentials} jobs={jobs} onNavigate={setActiveTab} />;
+        return <StudentDashboard skills={skills} achievements={achievements} credentials={credentials} jobs={jobs} onNavigate={setActiveTab} onApplyJob={handleApplyJob} applications={applications} />;
       case 'skill-graph':
         return <SkillGraph skills={skills} />;
       case 'projects':

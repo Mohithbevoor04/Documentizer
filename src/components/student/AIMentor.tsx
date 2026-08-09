@@ -50,20 +50,18 @@ export const AIMentor: React.FC = () => {
     if (!textToSend) setInput('');
     setIsTyping(true);
 
-    // Simulate RAG retrieval & response generation
-    const responseText = await AIService.queryAIMentor(query, 'Alex Rivera');
+    // RAG retrieval & response generation via Gemini API / RAG engine
+    const res = await AIService.queryAIMentor(query, 'Alex Rivera');
 
-    setTimeout(() => {
-      const aiMsg: ChatMessage = {
-        id: `ai_${Date.now()}`,
-        sender: 'ai',
-        text: responseText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        citations: ['Polygon Credential #7482', 'DSATM Academic Database', 'Vector Job Match Index']
-      };
-      setMessages(prev => [...prev, aiMsg]);
-      setIsTyping(false);
-    }, 1200);
+    const aiMsg: ChatMessage = {
+      id: `ai_${Date.now()}`,
+      sender: 'ai',
+      text: res.text,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      citations: res.citations || ['Polygon Credential #7482', 'DSATM Academic Database', 'Vector Job Match Index']
+    };
+    setMessages(prev => [...prev, aiMsg]);
+    setIsTyping(false);
   };
 
   const suggestedPrompts = [

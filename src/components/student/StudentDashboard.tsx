@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SkillItem, AchievementItem, CredentialRecord, JobOpportunity } from '@/types';
+import { SkillItem, AchievementItem, CredentialRecord, JobOpportunity, CandidateApplication } from '@/types';
 import { AIService } from '@/lib/aiService';
 import { 
   Sparkles, 
@@ -22,7 +22,9 @@ interface StudentDashboardProps {
   achievements: AchievementItem[];
   credentials: CredentialRecord[];
   jobs: JobOpportunity[];
+  applications?: CandidateApplication[];
   onNavigate: (tabId: string) => void;
+  onApplyJob?: (job: JobOpportunity) => void;
 }
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -30,7 +32,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   achievements,
   credentials,
   jobs,
-  onNavigate
+  applications = [],
+  onNavigate,
+  onApplyJob
 }) => {
   const scoreData = AIService.computeCareerScore(skills, achievements);
 
@@ -196,9 +200,19 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                 <div className="flex sm:flex-col items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-800">
                   <span className="text-xs font-semibold text-emerald-400">{job.stipendOrSalary}</span>
-                  <button className="rounded-xl bg-indigo-600/90 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow-md">
-                    Apply Now
-                  </button>
+                  {applications.some(a => a.opportunityId === job.id) ? (
+                    <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Applied
+                    </span>
+                  ) : (
+                    <button 
+                      onClick={() => onApplyJob && onApplyJob(job)}
+                      className="rounded-xl bg-indigo-600/90 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow-md"
+                    >
+                      Apply Now
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

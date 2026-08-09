@@ -70,6 +70,22 @@ CREATE TABLE IF NOT EXISTS `jobs` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Candidate Job Applications Table
+CREATE TABLE IF NOT EXISTS `applications` (
+  `id` VARCHAR(64) PRIMARY KEY,
+  `opportunity_id` VARCHAR(64) NOT NULL,
+  `job_title` VARCHAR(255) NOT NULL,
+  `company_name` VARCHAR(255) NOT NULL,
+  `student_id` VARCHAR(64) NOT NULL,
+  `student_name` VARCHAR(255) NOT NULL,
+  `student_roll` VARCHAR(64) NOT NULL,
+  `cgpa` DECIMAL(3,2) NOT NULL,
+  `talent_score` INT NOT NULL,
+  `match_score` INT NOT NULL,
+  `status` VARCHAR(32) DEFAULT 'applied',
+  `applied_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Audit Logs Table
 CREATE TABLE IF NOT EXISTS `audit_logs` (
   `id` VARCHAR(64) PRIMARY KEY,
