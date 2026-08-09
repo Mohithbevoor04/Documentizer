@@ -13,13 +13,13 @@ export async function POST(request: Request) {
 
     const apiKey = clientKey || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-    // Try Google AI Studio REST API with active models (gemma-4-31b-it, gemini-2.0-flash-lite-001)
+    // Query Google AI Studio REST API with active models (gemma-4-31b-it, gemini-2.0-flash-lite-001)
     if (apiKey) {
       const activeModels = ['gemma-4-31b-it', 'gemini-2.0-flash-lite-001', 'gemini-2.0-flash'];
       for (const modelName of activeModels) {
         try {
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-          const systemPrompt = `You are the AI Career Mentor & Talent Intelligence Assistant for TalentChain AI. You are assisting student "${studentName}" (CGPA: 9.4, CSE, Verified Polygon Credentials). Be friendly, concise, encouraging, and directly answer their query.`;
+          const systemPrompt = `You are a real, friendly AI Career Mentor chatbot assisting student "${studentName}" (CGPA: 9.4, CSE, Verified Polygon Credentials). Respond directly, conversationally, and naturally to the user prompt. Do not output planning thoughts or scratchpads; give only the final chat response.`;
 
           const res = await fetch(url, {
             method: 'POST',
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
             body: JSON.stringify({
               contents: [
                 {
-                  parts: [{ text: `${systemPrompt}\n\nStudent Question: ${query}` }]
+                  parts: [{ text: `${systemPrompt}\n\nUser Question: ${query}` }]
                 }
               ]
             })
@@ -36,7 +36,17 @@ export async function POST(request: Request) {
           if (res.ok) {
             const data = await res.json();
             if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-              const responseText = data.candidates[0].content.parts[0].text;
+              let responseText = data.candidates[0].content.parts[0].text;
+
+              // Clean internal thinking/scratchpad from model output if present
+              const splitMarkers = ['*   *Response:*', '* Response:', 'Response:', '---', 'Option 1:'];
+              for (const marker of splitMarkers) {
+                if (responseText.includes(marker)) {
+                  responseText = responseText.split(marker).pop()!.trim();
+                }
+              }
+              responseText = responseText.replace(/^(?:\*\s*)+/g, '').trim();
+
               return NextResponse.json({
                 success: true,
                 source: `google_ai_studio_${modelName}`,
@@ -56,7 +66,10 @@ export async function POST(request: Request) {
     let responseText = '';
     let citations = ['DSATM Academic Vector Index', 'Polygon Verified Profile #7482'];
 
-    if (q.includes('hey') || q.includes('hello') || q.includes('hi') || q.includes('what up') || q.includes('sup') || q.includes('greetings')) {
+    if (q.includes('shit') || q.includes('bad') || q.includes('hate') || q.includes('useless') || q.includes('dumb')) {
+      responseText = `I'm really sorry if my previous answer wasn't helpful, ${studentName}! I am your AI Career Mentor — tell me specifically what you need (e.g. evaluating your resume, checking your Polygon blockchain credentials, matching jobs, or generating a study roadmap) and I'll give you a direct, accurate answer!`;
+      citations = ['TalentChain AI Assistant', 'Student Context Vector'];
+    } else if (q.includes('hey') || q.includes('hello') || q.includes('hi') || q.includes('what up') || q.includes('sup') || q.includes('greetings')) {
       responseText = `Hey ${studentName}! 👋 I'm doing great! How's your day going? I'm your AI Career Mentor — whether you want to check your resume ATS score, review your Polygon blockchain credentials, or explore top-matching job opportunities, just let me know! What can I help you with today?`;
       citations = ['TalentChain AI Assistant', 'Student Context Vector'];
     } else if (q.includes('who are you') || q.includes('what can you do') || q.includes('help')) {
