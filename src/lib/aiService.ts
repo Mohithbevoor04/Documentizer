@@ -1,3 +1,7 @@
+/**
+ * TalentChain AI Intelligence & Career Scoring Service
+ * Provides vector scoring math, resume ATS analysis, and AI mentor routing.
+ */
 import { SkillItem, AchievementItem, JobOpportunity } from '@/types';
 
 export interface CareerScoreBreakdown {
