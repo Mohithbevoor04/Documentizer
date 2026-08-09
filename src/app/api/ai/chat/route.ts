@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(request: Request) {
   let studentName = 'Alex Rivera';
@@ -14,29 +13,45 @@ export async function POST(request: Request) {
 
     const apiKey = clientKey || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-    // Check if key is a valid Google AI Studio Key (starts with AIzaSy)
-    if (apiKey && apiKey.startsWith('AIzaSy')) {
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    // Try Google AI Studio REST API with active models (gemma-4-31b-it, gemini-2.0-flash-lite-001)
+    if (apiKey) {
+      const activeModels = ['gemma-4-31b-it', 'gemini-2.0-flash-lite-001', 'gemini-2.0-flash'];
+      for (const modelName of activeModels) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+          const systemPrompt = `You are the AI Career Mentor & Talent Intelligence Assistant for TalentChain AI. You are assisting student "${studentName}" (CGPA: 9.4, CSE, Verified Polygon Credentials). Be friendly, concise, encouraging, and directly answer their query.`;
 
-        const systemPrompt = `You are the AI Career Mentor for TalentChain AI assisting student "${studentName}" (CGPA: 9.4, CSE, Verified Polygon Credentials). Be friendly, concise, helpful, and answer their exact query.`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [{ text: `${systemPrompt}\n\nStudent Question: ${query}` }]
+                }
+              ]
+            })
+          });
 
-        const result = await model.generateContent(`${systemPrompt}\n\nStudent Query: ${query}`);
-        const responseText = result.response.text();
-
-        return NextResponse.json({
-          success: true,
-          source: 'gemini_1.5_flash',
-          text: responseText,
-          citations: ['Gemini 1.5 Flash Model', 'Polygon Verified Profile #7482', 'DSATM Vector Index']
-        });
-      } catch (geminiErr: any) {
-        console.warn('Gemini API execution error, falling back to neural conversational engine:', geminiErr.message);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+              const responseText = data.candidates[0].content.parts[0].text;
+              return NextResponse.json({
+                success: true,
+                source: `google_ai_studio_${modelName}`,
+                text: responseText,
+                citations: [`Google AI Model (${modelName})`, 'Polygon Profile Vector #7482', 'DSATM Academic Index']
+              });
+            }
+          }
+        } catch (mErr: any) {
+          console.warn(`Model ${modelName} fetch note:`, mErr.message);
+        }
       }
     }
 
-    // Dynamic Conversational RAG Engine
+    // Dynamic Conversational RAG Engine Fallback
     const q = query.toLowerCase().trim();
     let responseText = '';
     let citations = ['DSATM Academic Vector Index', 'Polygon Verified Profile #7482'];
